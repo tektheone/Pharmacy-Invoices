@@ -4,11 +4,13 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "strict": true,
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": ".",
+    "resolveJsonModule": true
   },
   "include": ["src", "prisma"]
 }
