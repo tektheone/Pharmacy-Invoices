@@ -12,7 +12,10 @@
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",
     "verify:env": "node -e \"console.log('Env template present:', require('fs').existsSync('.env.example'))\"",
-    "setup:db": "npm run db:up && npm --workspace backend exec prisma migrate dev --name init && npm --workspace backend run db:seed"
+    "setup:db": "npm run db:up && sleep 10 && npm --workspace backend exec prisma migrate dev --name init && npm --workspace backend run db:seed",
+    "dev:backend": "npm --workspace backend run dev",
+    "build:backend": "npm --workspace backend run build",
+    "test:backend": "npm --workspace backend run test"
   },
   "engines": {
     "node": ">=18.0.0"
