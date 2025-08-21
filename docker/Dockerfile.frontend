@@ -1,0 +1,5 @@
+# Placeholder Dockerfile for frontend (to be completed in later phases)
+FROM node:18-alpine AS base
+WORKDIR /app
+
+

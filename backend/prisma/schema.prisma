@@ -1,0 +1,62 @@
+// Prisma schema for Pharmacy Invoice Validation System (Phase 2)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Validation {
+  id                 String               @id @default(cuid())
+  filename           String
+  uploadedAt         DateTime             @default(now())
+  status             String
+  processingTimeMs   Int?
+  totalDiscrepancies Int                  @default(0)
+  results            ValidationResult[]
+  createdAt          DateTime             @default(now())
+}
+
+model ValidationResult {
+  id             String     @id @default(cuid())
+  validationId   String
+  drugName       String
+  discrepancyType String
+  recordedValue  String
+  expectedValue  String?
+  details        String?
+  severity       String
+  createdAt      DateTime   @default(now())
+
+  validation     Validation @relation(fields: [validationId], references: [id], onDelete: Cascade)
+  @@index([validationId])
+}
+
+model ReferenceDrugCache {
+  id          String   @id @default(cuid())
+  drugName    String
+  strength    String?
+  formulation String?
+  unitPrice   Decimal? @db.Decimal(10,2)
+  payer       String?
+  lastUpdated DateTime @default(now())
+  sourceApi   String?
+
+  @@unique([drugName, strength, formulation])
+}
+
+model Setting {
+  id                 String   @id @default(cuid())
+  theme              String   @default("system")
+  unitPriceThreshold Int      @default(10) // percentage
+  cacheDurationHours Int      @default(24)
+  fileSizeLimitBytes Int      @default(104857600)
+  defaultExportFormat String  @default("pdf")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+
