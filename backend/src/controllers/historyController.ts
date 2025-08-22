@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { DatabaseService } from '../services/databaseService';
 import { createError } from '../middleware/errorHandler';
 
 export const historyController = {
@@ -10,15 +11,9 @@ export const historyController = {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
       
-      // Mock response for now
-      // In Phase 4, this will query the database
-      res.status(200).json({
-        message: 'Validation history endpoint - will be implemented in Phase 4',
-        page,
-        limit,
-        total: 0,
-        validations: [],
-      });
+      const history = await DatabaseService.getValidationHistory(page, limit);
+      
+      res.status(200).json(history);
 
     } catch (error) {
       next(error);
@@ -32,11 +27,16 @@ export const historyController = {
     try {
       const { id } = req.params;
       
-      // Mock response for now
-      // In Phase 4, this will query the database
+      const validation = await DatabaseService.getValidationById(id);
+      
       res.status(200).json({
-        id,
-        message: 'Get validation by ID endpoint - will be implemented in Phase 4',
+        id: validation.id,
+        filename: validation.filename,
+        status: validation.status,
+        totalDiscrepancies: validation.totalDiscrepancies,
+        processingTime: validation.processingTimeMs,
+        createdAt: validation.createdAt,
+        results: validation.results,
       });
 
     } catch (error) {
@@ -51,19 +51,16 @@ export const historyController = {
     try {
       const { query, startDate, endDate, discrepancyType, page, limit } = req.query;
       
-      // Mock response for now
-      // In Phase 4, this will implement actual search logic
-      res.status(200).json({
-        message: 'Search validations endpoint - will be implemented in Phase 4',
-        query,
-        startDate,
-        endDate,
-        discrepancyType,
-        page: parseInt(page as string) || 1,
-        limit: parseInt(limit as string) || 20,
-        total: 0,
-        results: [],
-      });
+      const searchResults = await DatabaseService.searchValidations(
+        query as string,
+        startDate as string,
+        endDate as string,
+        discrepancyType as string,
+        parseInt(page as string) || 1,
+        parseInt(limit as string) || 20
+      );
+      
+      res.status(200).json(searchResults);
 
     } catch (error) {
       next(error);
@@ -77,8 +74,8 @@ export const historyController = {
     try {
       const { id } = req.params;
       
-      // Mock response for now
-      // In Phase 4, this will actually delete from database
+      await DatabaseService.deleteValidation(id);
+      
       res.status(200).json({
         id,
         message: 'Validation deleted successfully',

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { DatabaseService } from '../services/databaseService';
 import { createError } from '../middleware/errorHandler';
 
 export const settingsController = {
@@ -7,17 +8,11 @@ export const settingsController = {
    */
   async getSettings(req: Request, res: Response, next: NextFunction) {
     try {
-      // Mock response for now
-      // In Phase 4, this will query the database
+      const settings = await DatabaseService.getSettings();
+      
       res.status(200).json({
-        message: 'Get settings endpoint - will be implemented in Phase 4',
-        settings: {
-          theme: 'system',
-          unitPriceThreshold: 10,
-          cacheDurationHours: 24,
-          fileSizeLimitBytes: 104857600,
-          defaultExportFormat: 'pdf',
-        },
+        message: 'Settings retrieved successfully',
+        settings,
       });
 
     } catch (error) {
@@ -32,11 +27,11 @@ export const settingsController = {
     try {
       const settings = req.body;
       
-      // Mock response for now
-      // In Phase 4, this will update the database
+      const updatedSettings = await DatabaseService.updateSettings(settings);
+      
       res.status(200).json({
         message: 'Settings updated successfully',
-        settings,
+        settings: updatedSettings,
       });
 
     } catch (error) {
@@ -49,17 +44,11 @@ export const settingsController = {
    */
   async resetSettings(req: Request, res: Response, next: NextFunction) {
     try {
-      // Mock response for now
-      // In Phase 4, this will reset database settings
+      const defaultSettings = await DatabaseService.resetSettings();
+      
       res.status(200).json({
         message: 'Settings reset to defaults successfully',
-        settings: {
-          theme: 'system',
-          unitPriceThreshold: 10,
-          cacheDurationHours: 24,
-          fileSizeLimitBytes: 104857600,
-          defaultExportFormat: 'pdf',
-        },
+        settings: defaultSettings,
       });
 
     } catch (error) {

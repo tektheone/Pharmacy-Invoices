@@ -12,13 +12,20 @@ const upload = multer({
     fileSize: 100 * 1024 * 1024, // 100MB
   },
   fileFilter: (req, file, cb) => {
-    // Check file type
+    console.log(`🔍 File upload attempt: ${file.originalname}, mimetype: ${file.mimetype}`);
+    
+    // Check file type - be more flexible with MIME types
     if (
       file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-      file.mimetype === 'application/vnd.ms-excel'
+      file.mimetype === 'application/vnd.ms-excel' ||
+      file.mimetype === 'application/octet-stream' || // Some systems send this for Excel files
+      file.originalname.toLowerCase().endsWith('.xlsx') ||
+      file.originalname.toLowerCase().endsWith('.xls')
     ) {
+      console.log(`✅ File accepted: ${file.originalname}`);
       cb(null, true);
     } else {
+      console.log(`❌ File rejected: ${file.originalname} (mimetype: ${file.mimetype})`);
       cb(new Error('Only Excel files are allowed'));
     }
   },
