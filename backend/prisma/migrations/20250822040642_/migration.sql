@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "Validation" ALTER COLUMN "totalRows" DROP DEFAULT,
+ALTER COLUMN "updatedAt" DROP DEFAULT;
+
+-- AlterTable
+ALTER TABLE "ValidationResult" ALTER COLUMN "actualValue" DROP DEFAULT,
+ALTER COLUMN "message" DROP DEFAULT,
+ALTER COLUMN "unitPrice" DROP DEFAULT;

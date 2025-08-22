@@ -1,107 +1,87 @@
 # Pharmacy Invoice Validation System
 
-A full-stack application for Pharmacy Data Solutions (PDS) that processes pharmacy invoices, validates them against reference data, and flags discrepancies.
+A comprehensive full-stack application for validating pharmacy invoices against reference drug data with automated discrepancy detection.
 
-## 🚀 Features
+## Features
 
-- **Excel File Upload**: Drag & drop Excel invoice files (up to 100MB)
-- **Real-time Validation**: Instant discrepancy detection as you type
-- **Discrepancy Types**: Unit Price, Formulation, Strength, and Payer validation
-- **Validation History**: 3-month retention with search and filtering
-- **Export Options**: PDF, Excel, and CSV export
-- **Theme Support**: Light/Dark/System themes with smooth transitions
-- **Responsive Design**: Modern, mobile-friendly interface
+- **File Upload**: Support for Excel files (.xlsx, .xls) up to 100MB
+- **Automated Validation**: Comprehensive validation against reference drug data
+- **Discrepancy Detection**: Identifies price, formulation, strength, and payer mismatches
+- **Fuzzy Matching**: Advanced drug name matching with Levenshtein distance
+- **Validation History**: 3-month storage with search and pagination
+- **Export Functionality**: Multiple export formats (PDF, Excel, CSV)
+- **Responsive Design**: Modern UI built with Tailwind CSS and Shadcn/ui
+- **Real-time Processing**: Immediate validation feedback
+- **Performance Optimized**: Streaming Excel processing and caching
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-### Frontend
-- React 18 + TypeScript
-- Vite (build tool)
-- Tailwind CSS + Shadcn/ui
-- Axios for API calls
+- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS + Shadcn/ui
+- **Backend**: Node.js + Express + TypeScript + Prisma ORM
+- **Database**: PostgreSQL (dev) / Azure SQL (prod)
+- **Validation**: Zod schemas
+- **Excel Processing**: xlsx library
+- **Testing**: Jest + React Testing Library
+- **CI/CD**: GitHub Actions + Azure DevOps
 
-### Backend
-- Express.js + TypeScript
-- Prisma ORM
-- PostgreSQL (dev) → Azure SQL (prod)
-- Zod for validation
+## Quick Start
 
-### Infrastructure
-- Docker for development
-- GitHub Actions (CI)
-- Azure DevOps (CD)
-- Azure cloud services
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd pharmacy_invoices
+   ```
 
-## 📁 Project Structure
+2. **Install dependencies**
+   ```bash
+   npm install
+   cd backend && npm install
+   cd ../frontend && npm install
+   ```
 
-```
-pharmacy-invoices/
-├── frontend/          # React application
-├── backend/           # Express API server
-├── shared/            # Shared types & utilities
-├── docs/              # Documentation
-└── docker/            # Containerization
-```
+3. **Set up environment**
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your database credentials
+   ```
 
-## 🚦 Getting Started
+4. **Start the database**
+   ```bash
+   docker-compose up -d
+   ```
 
-### Prerequisites
-- Node.js 18+
-- Docker
-- npm
+5. **Run database migrations**
+   ```bash
+   cd backend
+   npm run db:migrate
+   npm run db:seed
+   ```
 
-### Development Setup
-```bash
-# Clone repository
-git clone <your-repo-url>
-cd pharmacy-invoices
+6. **Start development servers**
+   ```bash
+   # Terminal 1 - Backend
+   npm run dev:backend
+   
+   # Terminal 2 - Frontend
+   npm run dev:frontend
+   ```
 
-# Install dependencies
-npm install
+7. **Open your browser**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:3001
 
-# Start development environment
-npm run dev
-```
+## Development
 
-### Database Setup
-```bash
-# Start PostgreSQL with Docker
-docker-compose up -d
+- **Phase-based Development**: Follows strict 10-phase implementation plan
+- **Atomic Design**: Frontend components follow Atomic Design principles
+- **Type Safety**: Full TypeScript coverage
+- **Code Quality**: ESLint + Prettier configuration
+- **Testing**: Comprehensive test coverage with Jest
 
-# Run database migrations
-npm run setup:db
-```
+## Contributing
 
-## 📋 Implementation Phases
+Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on our development workflow and contribution guidelines.
 
-See [IMPLEMENTATION_PLAN.md](./docs/IMPLEMENTATION_PLAN.md) for detailed phase breakdown.
+## License
 
-## 🔧 Available Scripts
-
-```bash
-npm run dev              # Start both frontend and backend
-npm run build            # Build both applications
-npm run test             # Run all tests
-npm run setup:dev        # Setup development environment
-npm run setup:db         # Setup database
-```
-
-## 📚 Documentation
-
-- [Implementation Plan](./docs/IMPLEMENTATION_PLAN.md)
-- [Project Structure](./docs/PROJECT_STRUCTURE.md)
-- [API Documentation](./docs/API.md)
-- [Development Setup](./docs/SETUP.md)
-- [Deployment Guide](./docs/DEPLOYMENT.md)
-
-## 🤝 Contributing
-
-See [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for contribution guidelines.
-
-## 📄 License
-
-This project is proprietary to Pharmacy Data Solutions.
-
-## 📞 Support
-
-For questions or support, contact the development team.
+This project is licensed under the MIT License.

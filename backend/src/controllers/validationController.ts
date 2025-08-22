@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { ExcelService } from '../services/excelService';
 import { ValidationService } from '../services/validationService';
+import { ExcelService } from '../services/excelService';
 import { DatabaseService } from '../services/databaseService';
 import { createError } from '../middleware/errorHandler';
 
@@ -8,43 +8,66 @@ export const validationController = {
   /**
    * Upload and validate Excel file
    */
-  async uploadAndValidate(req: Request, res: Response, next: NextFunction) {
+  async uploadFile(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.file) {
-        throw createError('No file uploaded', 400);
+        return next(createError('No file uploaded', 400));
       }
 
-      console.log(`📁 Processing file: ${req.file.originalname} (${req.file.size} bytes)`);
+      const filename = req.file.originalname;
+      console.log(`📁 Processing file: ${filename}`);
 
-      // Parse Excel file
-      const excelData = await ExcelService.parseExcelFile(req.file.buffer, req.file.originalname);
-      console.log(`📊 Parsed ${excelData.rows.length} drug rows`);
+      // Create validation record
+      const validation = await DatabaseService.createValidation(filename);
 
-      // Validate the data against reference drug data
-      const validationResult = await ValidationService.validateExcelData(
-        excelData.rows,
-        req.file.originalname
-      );
+      try {
+        // Parse Excel file
+        const excelData = await ExcelService.parseExcelFile(req.file.buffer, filename);
+        console.log(`📊 Parsed ${excelData.rows.length} drug rows`);
 
-      // Save validation result to database
-      const savedValidationId = await DatabaseService.saveValidationResult(validationResult);
+        // Validate the data against reference drug data
+        const validationResult = await ValidationService.validateExcelData(
+          excelData.rows,
+          filename
+        );
 
-      const response = {
-        id: savedValidationId,
-        filename: req.file.originalname,
-        status: 'completed',
-        totalDiscrepancies: validationResult.totalDiscrepancies,
-        totalRows: validationResult.totalRows,
-        processingTime: validationResult.processingTime,
-        message: 'File validated successfully',
-        createdAt: validationResult.createdAt.toISOString(),
-      };
+        // Update validation status
+        await DatabaseService.updateValidationStatus(
+          validation.id,
+          'completed',
+          validationResult.totalDiscrepancies,
+          validationResult.processingTime
+        );
 
-      console.log(`✅ File validated successfully: ${savedValidationId}`);
-      res.status(200).json(response);
+        // Save discrepancy results
+        if (validationResult.discrepancies.length > 0) {
+          await DatabaseService.createDiscrepancyResults(validation.id, validationResult.discrepancies);
+        }
 
+        console.log(`✅ Validation ${validation.id} completed with ${validationResult.totalDiscrepancies} discrepancies`);
+
+        res.json({
+          success: true,
+          message: 'File validated successfully',
+          data: {
+            validationId: validation.id,
+            filename: validation.filename,
+            status: 'completed',
+            totalDiscrepancies: validationResult.totalDiscrepancies,
+            processingTimeMs: validationResult.processingTime,
+          },
+        });
+      } catch (error) {
+        console.error(`❌ Validation ${validation.id} failed:`, error);
+        await DatabaseService.updateValidationStatus(validation.id, 'failed', 0, 0);
+        
+        throw error;
+      }
     } catch (error) {
-      next(error);
+      next(createError(
+        `Failed to validate file: ${error instanceof Error ? error.message : 'Validation error'}`,
+        500
+      ));
     }
   },
 
@@ -54,20 +77,30 @@ export const validationController = {
   async getValidationStatus(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      
-      const validation = await DatabaseService.getValidationById(id);
-      
-      res.status(200).json({
-        id: validation.id,
-        filename: validation.filename,
-        status: validation.status,
-        totalDiscrepancies: validation.totalDiscrepancies,
-        processingTime: validation.processingTimeMs,
-        createdAt: validation.createdAt,
-      });
 
+      const validation = await DatabaseService.getValidation(id);
+
+      if (!validation) {
+        return next(createError('Validation not found', 404));
+      }
+
+      res.json({
+        success: true,
+        message: 'Validation status retrieved successfully',
+        data: {
+          id: validation.id,
+          filename: validation.filename,
+          status: validation.status,
+          totalDiscrepancies: validation.totalDiscrepancies,
+          processingTimeMs: validation.processingTimeMs,
+          createdAt: validation.createdAt,
+        },
+      });
     } catch (error) {
-      next(error);
+      next(createError(
+        `Failed to get validation status: ${error instanceof Error ? error.message : 'Database error'}`,
+        500
+      ));
     }
   },
 
@@ -77,50 +110,39 @@ export const validationController = {
   async getValidationResults(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      
-      const validation = await DatabaseService.getValidationById(id);
-      
-      res.status(200).json({
-        id: validation.id,
-        filename: validation.filename,
-        status: validation.status,
-        totalDiscrepancies: validation.totalDiscrepancies,
-        processingTime: validation.processingTimeMs,
-        createdAt: validation.createdAt,
-        results: validation.results.map(result => ({
-          id: result.id,
-          drugName: result.drugName,
-          discrepancyType: result.discrepancyType,
-          recordedValue: result.recordedValue,
-          expectedValue: result.expectedValue,
-          details: result.details,
-          severity: result.severity,
-          createdAt: result.createdAt,
-        })),
+
+      const validation = await DatabaseService.getValidation(id);
+
+      if (!validation) {
+        return next(createError('Validation not found', 404));
+      }
+
+      if (validation.status !== 'completed') {
+        return next(createError('Validation not completed yet', 400));
+      }
+
+      const results = await DatabaseService.getDiscrepancyResults(id);
+
+      res.json({
+        success: true,
+        message: 'Validation results retrieved successfully',
+        data: {
+          validation: {
+            id: validation.id,
+            filename: validation.filename,
+            status: validation.status,
+            totalDiscrepancies: validation.totalDiscrepancies,
+            processingTimeMs: validation.processingTimeMs,
+            createdAt: validation.createdAt,
+          },
+          results,
+        },
       });
-
     } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
-   * Cancel validation
-   */
-  async cancelValidation(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      
-      // Mock response for now
-      // In Phase 4, this will actually cancel the validation
-      res.status(200).json({
-        id,
-        status: 'cancelled',
-        message: 'Validation cancelled successfully',
-      });
-
-    } catch (error) {
-      next(error);
+      next(createError(
+        `Failed to get validation results: ${error instanceof Error ? error.message : 'Database error'}`,
+        500
+      ));
     }
   },
 };

@@ -1,291 +1,270 @@
-# Project Structure
+# Pharmacy Invoice Validation System - Project Structure
 
-## Overview
 This document outlines the complete folder and file structure for the Pharmacy Invoice Validation System.
 
-## Root Directory Structure
+## Root Structure
+
 ```
-pharmacy-invoices/
-├── .github/                          # GitHub Actions workflows
-├── .azure/                           # Azure DevOps pipelines
-├── frontend/                         # React application
-├── backend/                          # Express API server
-├── shared/                           # Shared types & utilities
-├── docs/                             # Documentation
-├── docker/                           # Containerization
-├── .env.example                      # Environment variables template
-├── .gitignore                        # Git ignore rules
-├── package.json                      # Root package.json (workspace)
-├── README.md                         # Project main README
-└── docker-compose.yml                # Root docker-compose for development
+pharmacy_invoices/
+├── frontend/                 # React frontend application
+├── backend/                  # Express.js backend API
+├── shared/                   # Shared types and utilities
+├── docs/                     # Project documentation
+├── .github/                  # GitHub Actions workflows
+├── .azure/                   # Azure DevOps pipelines
+├── docker-compose.yml        # Docker development environment
+├── package.json              # Root workspace configuration
+├── .env.example             # Environment variables template
+├── .env.local               # Local environment variables
+├── .gitignore               # Git ignore rules
+└── README.md                 # Project overview
 ```
 
-## Detailed Structure
+## Frontend Structure
 
-### .github/ (GitHub Actions)
-```
-.github/
-└── workflows/
-    ├── ci.yml                        # Continuous Integration pipeline
-    └── security.yml                  # Security scanning pipeline
-```
-
-### .azure/ (Azure DevOps)
-```
-.azure/
-├── build.yml                         # Build pipeline
-└── deploy.yml                        # Deployment pipeline
-```
-
-### frontend/ (React Application)
 ```
 frontend/
-├── public/                           # Static assets (.gitkeep until assets exist)
-│   ├── index.html
+├── public/                   # Static assets
 │   ├── favicon.ico
-│   └── manifest.json
+│   └── index.html
 ├── src/
-│   ├── components/                   # Atomic Design component library (scaffolded with .gitkeep)
-│   │   ├── atoms/                    # Basic building blocks
-│   │   │   ├── Button.tsx
-│   │   │   ├── Input.tsx
-│   │   │   ├── Label.tsx
-│   │   │   ├── Icon.tsx
-│   │   │   ├── Badge.tsx
-│   │   │   ├── Spinner.tsx
+│   ├── components/           # React components following Atomic Design
+│   │   ├── atoms/            # Basic building blocks
+│   │   │   ├── Button/
+│   │   │   │   ├── Button.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── Input/
+│   │   │   │   ├── Input.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── Card/
+│   │   │   │   ├── Card.tsx
+│   │   │   │   └── index.ts
 │   │   │   └── index.ts
-│   │   ├── molecules/                # Simple component combinations
-│   │   │   ├── SearchInput.tsx
-│   │   │   ├── FormField.tsx
-│   │   │   ├── StatusBadge.tsx
-│   │   │   ├── LoadingState.tsx
-│   │   │   ├── ErrorMessage.tsx
+│   │   ├── molecules/        # Simple component combinations
+│   │   │   ├── Navigation/
+│   │   │   │   ├── Navigation.tsx
+│   │   │   │   └── index.ts
 │   │   │   └── index.ts
-│   │   ├── organisms/                # Complex component combinations
-│   │   │   ├── FileUpload.tsx
-│   │   │   ├── ValidationForm.tsx
-│   │   │   ├── DiscrepancyCard.tsx
-│   │   │   ├── ValidationTable.tsx
-│   │   │   ├── HistoryView.tsx
-│   │   │   ├── SettingsPanel.tsx
+│   │   ├── organisms/        # Complex UI sections
+│   │   │   ├── Header/
+│   │   │   │   ├── Header.tsx
+│   │   │   │   └── index.ts
 │   │   │   └── index.ts
-│   │   ├── templates/                # Page layouts
-│   │   │   ├── DashboardLayout.tsx
-│   │   │   ├── ValidationLayout.tsx
-│   │   │   ├── HistoryLayout.tsx
-│   │   │   ├── SettingsLayout.tsx
+│   │   ├── templates/        # Page layouts
+│   │   │   ├── Layout/
+│   │   │   │   ├── Layout.tsx
+│   │   │   │   └── index.ts
 │   │   │   └── index.ts
-│   │   └── pages/                    # Complete pages
-│   │       ├── Dashboard.tsx
-│   │       ├── Validation.tsx
-│   │       ├── History.tsx
-│   │       ├── Settings.tsx
-│   │       └── Analytics.tsx
-│   ├── pages/                        # Page components (scaffolded)
-│   │   ├── Dashboard.tsx
-│   │   ├── Validation.tsx
-│   │   ├── History.tsx
-│   │   ├── Settings.tsx
-│   │   └── Analytics.tsx
-│   ├── hooks/                        # Custom React hooks
-│   │   ├── useTheme.ts
-│   │   ├── useValidation.ts
-│   │   ├── useFileUpload.ts
-│   │   └── useLocalStorage.ts
-│   ├── contexts/                     # React contexts
-│   │   ├── ThemeContext.tsx
-│   │   ├── ValidationContext.tsx
-│   │   └── SettingsContext.tsx
-│   ├── services/                     # API service functions
-│   │   ├── api.ts                    # Base API configuration
-│   │   ├── validationService.ts
-│   │   ├── historyService.ts
-│   │   └── exportService.ts
-│   ├── types/                        # TypeScript interfaces
-│   │   ├── validation.ts
-│   │   ├── drug.ts
-│   │   ├── theme.ts
-│   │   └── api.ts
-│   ├── utils/                        # Utility functions
-│   │   ├── formatters.ts
-│   │   ├── validators.ts
-│   │   ├── constants.ts
-│   │   └── helpers.ts
-│   ├── styles/                       # CSS and styling
-│   │   ├── globals.css               # Tailwind CSS imports
-│   │   ├── theme.css                 # Theme-specific CSS variables
-│   │   └── components.css            # Component-specific styles
-│   ├── App.tsx                       # Main app component
-│   ├── main.tsx                      # App entry point
-│   └── vite-env.d.ts                 # Vite type definitions
-├── package.json                      # Frontend dependencies (to be added in Phase 5)
-├── tsconfig.json                     # TypeScript configuration
-├── vite.config.ts                    # Vite configuration
-├── tailwind.config.js                # Tailwind CSS configuration
-├── postcss.config.js                 # PostCSS configuration
-└── .eslintrc.js                      # ESLint configuration (added later)
+│   │   └── pages/            # Complete pages
+│   │       ├── HomePage/
+│   │       │   ├── HomePage.tsx
+│   │       │   └── index.ts
+│   │       ├── ValidationPage/
+│   │       │   ├── ValidationPage.tsx
+│   │       │   └── index.ts
+│   │       ├── HistoryPage/
+│   │       │   ├── HistoryPage.tsx
+│   │       │   └── index.ts
+│   │       └── index.ts
+│   ├── types/                # TypeScript type definitions
+│   │   └── index.ts
+│   ├── utils/                # Utility functions
+│   │   └── cn.ts
+│   ├── App.tsx               # Main application component
+│   ├── main.tsx              # Application entry point
+│   └── index.css             # Global styles and Tailwind CSS
+├── package.json              # Frontend dependencies
+├── tsconfig.json             # TypeScript configuration
+├── tailwind.config.js        # Tailwind CSS configuration
+├── postcss.config.js         # PostCSS configuration
+└── vite.config.ts            # Vite build configuration
 ```
 
-### backend/ (Express API Server)
+## Backend Structure
+
 ```
 backend/
 ├── src/
-│   ├── controllers/                  # Route handlers (scaffolded)
+│   ├── controllers/          # Request handlers
 │   │   ├── validationController.ts
-│   │   ├── historyController.ts
-│   │   ├── settingsController.ts
-│   │   └── exportController.ts
-│   ├── services/                     # Business logic (scaffolded)
+│   │   └── historyController.ts
+│   ├── services/             # Business logic
 │   │   ├── validationService.ts
 │   │   ├── excelService.ts
-│   │   ├── drugMatchingService.ts
-│   │   ├── discrepancyService.ts
-│   │   ├── cacheService.ts
-│   │   └── exportService.ts
-│   ├── middleware/                   # Express middleware (scaffolded)
+│   │   └── databaseService.ts
+│   ├── routes/               # API route definitions
+│   │   ├── index.ts
+│   │   ├── validation.ts
+│   │   └── history.ts
+│   ├── middleware/           # Express middleware
 │   │   ├── errorHandler.ts
 │   │   ├── validation.ts
-│   │   ├── cors.ts
-│   │   ├── rateLimiter.ts
+│   │   └── rateLimiter.ts
+│   ├── types/                # TypeScript type definitions
+│   │   └── validation.ts
+│   ├── utils/                # Utility functions
 │   │   └── logger.ts
-│   ├── models/                       # Prisma models (scaffolded)
-│   │   ├── index.ts                  # Prisma client export
-│   │   └── prisma.ts                 # Prisma configuration
-│   ├── routes/                       # API routes (scaffolded)
-│   │   ├── index.ts                  # Main router
-│   │   ├── validation.ts
-│   │   ├── history.ts
-│   │   ├── settings.ts
-│   │   └── export.ts
-│   ├── types/                        # TypeScript interfaces (scaffolded)
-│   │   ├── validation.ts
-│   │   ├── drug.ts
-│   │   ├── excel.ts
-│   │   └── api.ts
-│   ├── utils/                        # Utility functions (scaffolded)
-│   │   ├── constants.ts
-│   │   ├── helpers.ts
-│   │   ├── formatters.ts
-│   │   └── validators.ts
-│   ├── config/                       # Configuration files (scaffolded)
-│   │   ├── database.ts
-│   │   ├── server.ts
-│   │   └── environment.ts
-│   ├── app.ts                        # Express app setup
-│   ├── server.ts                     # Server entry point
-│   └── index.ts                      # Main entry point
-├── prisma/                           # Prisma configuration (scaffolded)
-│   ├── schema.prisma                 # Database schema
-│   ├── migrations/                   # Database migrations
-│   └── seed.ts                       # Seed data script
-├── package.json                      # Backend dependencies (to be added in Phase 3)
-├── tsconfig.json                     # TypeScript configuration
-├── .eslintrc.js                      # ESLint configuration
-└── nodemon.json                      # Development server configuration
+│   ├── config/               # Configuration files
+│   │   └── index.ts
+│   └── server.ts             # Application entry point
+├── prisma/                   # Database schema and migrations
+│   ├── schema.prisma         # Database schema definition
+│   ├── migrations/           # Database migration files
+│   └── seed.ts               # Database seeding script
+├── package.json              # Backend dependencies
+├── tsconfig.json             # TypeScript configuration
+└── .env.example              # Environment variables template
 ```
 
-### shared/ (Shared Types & Utilities)
+## Shared Structure
+
 ```
 shared/
-├── types/                            # Common TypeScript interfaces (scaffolded)
-│   ├── drug.ts
-│   ├── validation.ts
-│   ├── theme.ts
-│   └── common.ts
-├── constants/                        # Shared constants (scaffolded)
-│   ├── validation.ts
-│   ├── theme.ts
-│   └── api.ts
-└── utils/                            # Shared utility functions (scaffolded)
-    ├── formatters.ts
-    ├── validators.ts
-    └── helpers.ts
+├── types/                    # Shared TypeScript types
+│   └── index.ts
+├── constants/                # Shared constants
+│   └── index.ts
+└── utils/                    # Shared utility functions
+    └── index.ts
 ```
 
-### docs/ (Documentation)
+## Documentation Structure
+
 ```
 docs/
-├── IMPLEMENTATION_PLAN.md             # Detailed implementation phases
-├── PROJECT_STRUCTURE.md               # This file
-├── API.md                             # API documentation
-├── SETUP.md                           # Development setup guide
-├── DEPLOYMENT.md                      # Deployment guide
-└── CONTRIBUTING.md                    # Contribution guidelines
+├── IMPLEMENTATION_PLAN.md     # 10-phase development plan
+├── PROJECT_STRUCTURE.md       # This file
+├── ATOMIC_DESIGN.md          # Frontend component architecture
+├── API.md                    # API endpoint documentation
+├── SETUP.md                  # Development environment setup
+├── CONTRIBUTING.md           # Contribution guidelines
+└── DEPLOYMENT.md             # Production deployment guide
 ```
 
-### docker/ (Containerization)
+## Key Files and Their Purpose
+
+### **Root Configuration**
+- **`package.json`**: Workspace configuration with scripts for both frontend and backend
+- **`docker-compose.yml`**: PostgreSQL database setup for development
+- **`.env.example`**: Template for environment variables
+- **`.gitignore`**: Git ignore rules for the entire project
+
+### **Frontend Configuration**
+- **`vite.config.ts`**: Vite build tool configuration
+- **`tailwind.config.js`**: Tailwind CSS configuration with custom design tokens
+- **`tsconfig.json`**: TypeScript configuration with path aliases
+- **`postcss.config.js`**: PostCSS configuration for Tailwind CSS
+
+### **Backend Configuration**
+- **`prisma/schema.prisma`**: Database schema definition using Prisma ORM
+- **`tsconfig.json`**: TypeScript configuration for Node.js backend
+- **`src/config/index.ts`**: Environment configuration and constants
+
+### **Component Architecture**
+- **`src/components/atoms/`**: Basic UI components (Button, Input, Card)
+- **`src/components/molecules/`**: Simple component combinations (Navigation, FormField)
+- **`src/components/organisms/`**: Complex UI sections (Header, Sidebar)
+- **`src/components/templates/`**: Page layout structures (Layout, DashboardLayout)
+- **`src/components/pages/`**: Complete page implementations (HomePage, ValidationPage)
+
+## Development Workflow
+
+### **1. Component Development**
+- Start with atoms (basic components)
+- Build molecules (simple combinations)
+- Create organisms (complex sections)
+- Design templates (page layouts)
+- Implement pages (complete functionality)
+
+### **2. File Organization**
+- Each component has its own folder
+- Include component file, tests, and index file
+- Use consistent naming conventions
+- Export components through index files
+
+### **3. Type Safety**
+- Define TypeScript interfaces for all components
+- Use shared types for common data structures
+- Maintain type consistency across atomic levels
+
+## Build and Deployment
+
+### **Development**
+```bash
+# Start both frontend and backend
+npm run dev
+
+# Start only frontend
+npm run dev:frontend
+
+# Start only backend
+npm run dev:backend
 ```
-docker/
-├── Dockerfile.frontend                # Frontend Docker image
-├── Dockerfile.backend                 # Backend Docker image
-├── docker-compose.yml                 # Development environment
-└── docker-compose.prod.yml            # Production environment
+
+### **Production Build**
+```bash
+# Build frontend
+npm run build:frontend
+
+# Build backend
+npm run build:backend
+
+# Build both
+npm run build
 ```
 
-## Key Design Principles
+### **Database Management**
+```bash
+# Run migrations
+npm run db:migrate
 
-### 1. Atomic Design Architecture
-- **Atoms**: Basic building blocks (Button, Input, Label, Icon, Badge, Spinner)
-- **Molecules**: Simple combinations (SearchInput, FormField, StatusBadge, LoadingState, ErrorMessage)
-- **Organisms**: Complex combinations (FileUpload, ValidationForm, DiscrepancyCard, ValidationTable, HistoryView, SettingsPanel)
-- **Templates**: Page layouts (DashboardLayout, ValidationLayout, HistoryLayout, SettingsLayout)
-- **Pages**: Complete pages (Dashboard, Validation, History, Settings, Analytics)
+# Seed database
+npm run db:seed
 
-### 2. Separation of Concerns
-- **Frontend**: React components and UI logic
-- **Backend**: API endpoints and business logic
-- **Shared**: Common types and utilities
-- **Docs**: Project documentation
+# Reset database
+npm run db:reset
+```
 
-### 2. Modular Architecture
-- **Components**: Reusable UI components
-- **Services**: Business logic services
-- **Controllers**: Route handlers
-- **Middleware**: Express middleware functions
+## Technology Stack
 
-### 3. Type Safety
-- **TypeScript**: Throughout the entire project
-- **Shared Types**: Common interfaces in shared folder
-- **Zod Schemas**: Runtime validation schemas
+### **Frontend**
+- **React 18**: Modern React with hooks and concurrent features
+- **TypeScript**: Type-safe JavaScript development
+- **Vite**: Fast build tool and development server
+- **Tailwind CSS**: Utility-first CSS framework
+- **Shadcn/ui**: High-quality component library
 
-### 4. Configuration Management
-- **Environment Variables**: .env files for configuration
-- **TypeScript Config**: Separate configs for frontend/backend
-- **Build Tools**: Vite for frontend, nodemon for backend
+### **Backend**
+- **Node.js**: JavaScript runtime environment
+- **Express.js**: Web application framework
+- **TypeScript**: Type-safe Node.js development
+- **Prisma**: Modern database ORM
+- **PostgreSQL**: Primary database (development)
 
-## File Naming Conventions
+### **Development Tools**
+- **ESLint**: Code linting and quality
+- **Prettier**: Code formatting
+- **Docker**: Containerized development environment
+- **Git**: Version control system
 
-### Components
-- **PascalCase**: React components (e.g., `FileUpload.tsx`)
-- **index.ts**: Barrel exports for component folders
+## Best Practices
 
-### Utilities
-- **camelCase**: Functions and variables (e.g., `formatters.ts`)
-- **kebab-case**: CSS files (e.g., `globals.css`)
+### **File Naming**
+- Use PascalCase for component files
+- Use camelCase for utility files
+- Use kebab-case for configuration files
+- Include file extensions in imports
 
-### Configuration
-- **kebab-case**: Config files (e.g., `tailwind.config.js`)
-- **dot-prefix**: Hidden files (e.g., `.env.example`)
+### **Component Structure**
+- Keep components focused and single-purpose
+- Use consistent prop interfaces
+- Implement proper error handling
+- Write comprehensive tests
 
-## Dependencies Organization
+### **Code Organization**
+- Group related functionality together
+- Use clear and descriptive names
+- Maintain consistent patterns
+- Document complex logic
 
-### Root Level
-- **Workspace configuration**: npm workspaces
-- **Common scripts**: Development and build commands
-- **Docker setup**: Development environment
-
-### Frontend
-- **React ecosystem**: React, TypeScript, Vite
-- **UI framework**: Tailwind CSS, Shadcn/ui
-- **HTTP client**: Axios for API calls
-
-### Backend
-- **Server framework**: Express.js, TypeScript
-- **Database**: Prisma ORM
-- **Validation**: Zod schemas
-- **File processing**: xlsx library
-
-### Shared
-- **Type definitions**: Common interfaces
-- **Constants**: Shared configuration values
-- **Utilities**: Common helper functions
+This structure ensures a **scalable, maintainable, and organized** codebase that follows modern development best practices!

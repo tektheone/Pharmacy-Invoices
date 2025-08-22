@@ -1,383 +1,377 @@
 # Atomic Design Implementation Guide
 
-## Overview
 This document outlines the Atomic Design implementation for the Pharmacy Invoice Validation System frontend. We follow Brad Frost's Atomic Design methodology to create a scalable, maintainable component library.
 
-## Atomic Design Hierarchy
+## Overview
+
+Atomic Design breaks down interfaces into fundamental building blocks that work together and nest within one another. This approach provides a clear methodology for crafting scalable design systems.
+
+## Atomic Design Levels
 
 ### 1. **Atoms** - Basic Building Blocks
-The smallest, most fundamental components that cannot be broken down further.
+The smallest functional units that can't be broken down further.
 
-#### **Button Atoms**
-```typescript
-// Primary button
-<Button variant="primary" size="md">Upload File</Button>
+**Examples**:
+- Buttons
+- Inputs
+- Labels
+- Icons
+- Typography
 
-// Secondary button
-<Button variant="secondary" size="sm">Cancel</Button>
-
-// Danger button
-<Button variant="danger" size="lg">Delete</Button>
+**Implementation**:
+```tsx
+// atoms/Button.tsx
+export function Button({ children, variant, ...props }) {
+  return (
+    <button className={cn(buttonVariants({ variant }))} {...props}>
+      {children}
+    </button>
+  )
+}
 ```
-
-#### **Input Atoms**
-```typescript
-// Text input
-<Input type="text" placeholder="Search drugs..." />
-
-// File input
-<Input type="file" accept=".xlsx,.xls" />
-
-// Number input
-<Input type="number" min="0" step="0.01" />
-```
-
-#### **Other Atoms**
-- **Label**: Form labels and text
-- **Icon**: SVG icons with consistent sizing
-- **Badge**: Status indicators and tags
-- **Spinner**: Loading indicators
 
 ### 2. **Molecules** - Simple Combinations
-Components composed of multiple atoms that work together as a unit.
+Simple groups of UI elements functioning together as a unit.
 
-#### **SearchInput Molecule**
-```typescript
-<SearchInput 
-  placeholder="Search validation history..."
-  onSearch={handleSearch}
-  clearable
-/>
+**Examples**:
+- Search bar (input + button)
+- Form field (label + input + error)
+- Navigation item (icon + text + link)
+
+**Implementation**:
+```tsx
+// molecules/SearchBar.tsx
+export function SearchBar({ onSearch, placeholder }) {
+  const [query, setQuery] = useState('')
+  
+  return (
+    <div className="flex space-x-2">
+      <Input 
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder={placeholder}
+      />
+      <Button onClick={() => onSearch(query)}>
+        Search
+      </Button>
+    </div>
+  )
+}
 ```
 
-#### **FormField Molecule**
-```typescript
-<FormField
-  label="Drug Name"
-  required
-  error="Drug name is required"
->
-  <Input type="text" placeholder="Enter drug name" />
-</FormField>
-```
+### 3. **Organisms** - Complex UI Components
+Relatively complex components composed of groups of molecules and/or atoms.
 
-#### **StatusBadge Molecule**
-```typescript
-<StatusBadge 
-  status="discrepancy" 
-  severity="high"
-  text="Unit Price Overcharge"
-/>
-```
+**Examples**:
+- Header (logo + navigation + user menu)
+- Form (multiple form fields + submit button)
+- Data table (headers + rows + pagination)
 
-### 3. **Organisms** - Complex UI Sections
-Larger components composed of molecules and atoms that form distinct sections.
-
-#### **FileUpload Organism**
-```typescript
-<FileUpload
-  accept=".xlsx,.xls"
-  maxSize={100 * 1024 * 1024}
-  onUpload={handleFileUpload}
-  onError={handleUploadError}
-/>
-```
-
-#### **ValidationForm Organism**
-```typescript
-<ValidationForm
-  onSubmit={handleValidation}
-  onCancel={handleCancel}
-  loading={isValidating}
-/>
-```
-
-#### **DiscrepancyCard Organism**
-```typescript
-<DiscrepancyCard
-  discrepancy={discrepancyData}
-  onViewDetails={handleViewDetails}
-  onExport={handleExport}
-/>
+**Implementation**:
+```tsx
+// organisms/Header.tsx
+export function Header() {
+  return (
+    <header className="bg-white shadow-sm border-b">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <Logo />
+          <Navigation />
+          <UserMenu />
+        </div>
+      </div>
+    </header>
+  )
+}
 ```
 
 ### 4. **Templates** - Page Layouts
-Page-level layouts that arrange organisms to form the structure of a page.
+Page-level objects that place components into a layout and articulate the design's underlying content structure.
 
-#### **DashboardLayout Template**
-```typescript
-<DashboardLayout>
-  <Header />
-  <Sidebar />
-  <MainContent>
-    <DiscrepancySummary />
-    <RecentValidations />
-    <QuickActions />
-  </MainContent>
-  <Footer />
-</DashboardLayout>
+**Examples**:
+- Dashboard layout
+- Form page layout
+- List page layout
+
+**Implementation**:
+```tsx
+// templates/DashboardLayout.tsx
+export function DashboardLayout({ children }) {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-12 gap-8">
+          <aside className="col-span-3">
+            <Sidebar />
+          </aside>
+          <main className="col-span-9">
+            {children}
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}
 ```
 
-#### **ValidationLayout Template**
-```typescript
-<ValidationLayout>
-  <Header />
-  <MainContent>
-    <FileUpload />
-    <ValidationProgress />
-    <ResultsDisplay />
-  </MainContent>
-</ValidationLayout>
-```
+### 5. **Pages** - Specific Instances
+Specific instances of templates that show what a UI looks like with real representative content.
 
-### 5. **Pages** - Complete Pages
-Complete pages that use templates and organisms to create the final user experience.
+**Examples**:
+- Home page
+- Validation page
+- History page
 
-#### **Dashboard Page**
-```typescript
-const Dashboard = () => {
+**Implementation**:
+```tsx
+// pages/HomePage.tsx
+export function HomePage() {
   return (
     <DashboardLayout>
-      <DiscrepancySummary />
-      <RecentValidations />
+      <HeroSection />
       <QuickActions />
+      <FeaturesSection />
     </DashboardLayout>
-  );
-};
+  )
+}
 ```
 
-## Component Implementation Guidelines
+## Component Structure
+
+```
+src/
+├── components/
+│   ├── atoms/
+│   │   ├── Button/
+│   │   │   ├── Button.tsx
+│   │   │   ├── Button.test.tsx
+│   │   │   └── index.ts
+│   │   ├── Input/
+│   │   ├── Card/
+│   │   └── index.ts
+│   ├── molecules/
+│   │   ├── SearchBar/
+│   │   ├── FormField/
+│   │   └── index.ts
+│   ├── organisms/
+│   │   ├── Header/
+│   │   ├── Sidebar/
+│   │   └── index.ts
+│   ├── templates/
+│   │   ├── DashboardLayout/
+│   │   ├── FormLayout/
+│   │   └── index.ts
+│   └── pages/
+│       ├── HomePage/
+│       ├── ValidationPage/
+│       └── index.ts
+```
+
+## Component Guidelines
+
+### **Naming Conventions**
+- Use PascalCase for component names
+- Use descriptive, semantic names
+- Avoid abbreviations unless universally understood
 
 ### **Props Interface**
-```typescript
-// Consistent prop naming across atomic levels
-interface BaseComponentProps {
-  className?: string;
-  disabled?: boolean;
-  loading?: boolean;
-  error?: string;
-}
-
-interface ButtonProps extends BaseComponentProps {
-  variant: 'primary' | 'secondary' | 'danger' | 'ghost';
-  size: 'sm' | 'md' | 'lg';
-  children: React.ReactNode;
-  onClick?: () => void;
+```tsx
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'outline'
+  size?: 'sm' | 'md' | 'lg'
+  disabled?: boolean
+  children: React.ReactNode
+  onClick?: () => void
 }
 ```
 
-### **Theme Integration**
-```typescript
-// All components support theme variants
-const Button = ({ variant, size, children, ...props }: ButtonProps) => {
-  const { theme } = useTheme();
+### **Default Props**
+```tsx
+const Button = ({ 
+  variant = 'primary', 
+  size = 'md', 
+  disabled = false,
+  children,
+  onClick 
+}: ButtonProps) => {
+  // Component implementation
+}
+```
+
+### **CSS Classes**
+- Use Tailwind CSS utility classes
+- Follow consistent spacing and sizing scales
+- Use CSS custom properties for design tokens
+- Maintain responsive design principles
+
+### **State Management**
+- Keep components as stateless as possible
+- Use React hooks for local state
+- Lift state up when needed for sharing
+- Use context for global state sparingly
+
+## Responsive Design
+
+### **Mobile-First Approach**
+```tsx
+// Start with mobile styles, then enhance for larger screens
+<div className="p-4 md:p-6 lg:p-8">
+  <h1 className="text-2xl md:text-3xl lg:text-4xl">
+    Title
+  </h1>
+</div>
+```
+
+### **Breakpoint Strategy**
+- **sm**: 640px+ (small tablets)
+- **md**: 768px+ (tablets)
+- **lg**: 1024px+ (desktops)
+- **xl**: 1280px+ (large desktops)
+
+## Accessibility
+
+### **Semantic HTML**
+```tsx
+// Use proper semantic elements
+<button aria-label="Close dialog">
+  <XIcon />
+</button>
+
+<form role="search">
+  <input type="search" aria-label="Search validations" />
+</form>
+```
+
+### **ARIA Labels**
+- Provide descriptive labels for interactive elements
+- Use aria-describedby for additional context
+- Implement proper focus management
+
+### **Keyboard Navigation**
+- Ensure all interactive elements are keyboard accessible
+- Implement logical tab order
+- Provide visible focus indicators
+
+## Testing Strategy
+
+### **Unit Tests**
+```tsx
+// Button.test.tsx
+describe('Button', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>)
+    expect(screen.getByText('Click me')).toBeInTheDocument()
+  })
   
-  return (
-    <button 
-      className={cn(
-        buttonVariants({ variant, size }),
-        theme === 'dark' && 'dark:bg-slate-800'
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-};
+  it('calls onClick when clicked', () => {
+    const handleClick = jest.fn()
+    render(<Button onClick={handleClick}>Click me</Button>)
+    fireEvent.click(screen.getByText('Click me'))
+    expect(handleClick).toHaveBeenCalled()
+  })
+})
 ```
 
-### **Composition Pattern**
-```typescript
-// Build complex components from simpler ones
-const FileUpload = ({ children, ...props }: FileUploadProps) => {
-  return (
-    <div className="file-upload-container">
-      <Input type="file" {...props} />
-      <Label>Drag and drop files here</Label>
-      {children}
-    </div>
-  );
-};
-```
-
-## File Organization
-
-### **Component Structure**
-```
-frontend/src/components/
-├── atoms/                    # Basic building blocks
-│   ├── Button/
-│   │   ├── Button.tsx
-│   │   ├── Button.test.tsx
-│   │   ├── Button.stories.tsx
-│   │   └── index.ts
-│   ├── Input/
-│   ├── Label/
-│   └── index.ts
-├── molecules/                # Simple combinations
-│   ├── SearchInput/
-│   ├── FormField/
-│   └── index.ts
-├── organisms/                # Complex combinations
-│   ├── FileUpload/
-│   ├── ValidationForm/
-│   └── index.ts
-├── templates/                # Page layouts
-│   ├── DashboardLayout/
-│   ├── ValidationLayout/
-│   └── index.ts
-└── pages/                    # Complete pages
-    ├── Dashboard/
-    ├── Validation/
-    └── index.ts
-```
-
-### **Index Files**
-```typescript
-// atoms/index.ts
-export { Button } from './Button';
-export { Input } from './Input';
-export { Label } from './Label';
-export { Icon } from './Icon';
-export { Badge } from './Badge';
-export { Spinner } from './Spinner';
-
-// molecules/index.ts
-export { SearchInput } from './SearchInput';
-export { FormField } from './FormField';
-export { StatusBadge } from './StatusBadge';
-export { LoadingState } from './LoadingState';
-export { ErrorMessage } from './ErrorMessage';
-```
-
-## Development Workflow
-
-### **1. Start with Atoms**
-- Build basic components first
-- Ensure they're highly reusable
-- Test in isolation
-
-### **2. Compose Molecules**
-- Combine atoms to create simple patterns
-- Focus on single responsibility
-- Maintain consistent prop interfaces
-
-### **3. Build Organisms**
-- Create complex UI sections
-- Use molecules and atoms as building blocks
-- Handle business logic and state
-
-### **4. Design Templates**
-- Create page layouts
-- Arrange organisms logically
-- Ensure responsive design
-
-### **5. Implement Pages**
-- Use templates and organisms
-- Handle page-level state
-- Connect to business logic
-
-## Benefits of Atomic Design
-
-### **Maintainability**
-- **Clear hierarchy** makes code easier to understand
-- **Reusable components** reduce duplication
-- **Consistent patterns** improve developer experience
-
-### **Scalability**
-- **Easy to add new components** following established patterns
-- **Component library** grows organically
-- **Design system** maintains consistency
-
-### **Testing**
-- **Test atoms in isolation** for reliability
-- **Test molecules for integration** between atoms
-- **Test organisms for complex behavior**
-
-### **Collaboration**
-- **Designers and developers** speak the same language
-- **Component documentation** improves communication
-- **Consistent patterns** reduce confusion
-
-## Theme Integration
-
-### **CSS Variables**
-```css
-/* atoms/Button/Button.module.css */
-.button {
-  background-color: var(--color-primary);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  transition: all 0.3s ease;
-}
-
-.button:hover {
-  background-color: var(--color-primary-hover);
-}
-```
-
-### **Theme Context**
-```typescript
-// All components use theme context
-const { theme, toggleTheme } = useTheme();
-
-// Components automatically adapt to theme changes
-<Button variant="primary">Theme-aware Button</Button>
-```
+### **Integration Tests**
+- Test component interactions
+- Verify prop passing
+- Test error states and edge cases
 
 ## Performance Considerations
 
-### **Component Optimization**
-- **React.memo** for expensive components
-- **useMemo** for expensive calculations
-- **useCallback** for stable function references
+### **Code Splitting**
+```tsx
+// Lazy load pages for better performance
+const ValidationPage = lazy(() => import('./ValidationPage'))
+
+// Use Suspense for loading states
+<Suspense fallback={<LoadingSpinner />}>
+  <ValidationPage />
+</Suspense>
+```
+
+### **Memoization**
+```tsx
+// Memoize expensive components
+const ExpensiveComponent = memo(({ data }) => {
+  // Heavy computation
+  return <div>{processedData}</div>
+})
+```
 
 ### **Bundle Optimization**
-- **Tree shaking** for unused components
-- **Code splitting** by atomic level
-- **Lazy loading** for large organisms
+- Tree shake unused components
+- Use dynamic imports for large dependencies
+- Optimize image and asset loading
 
 ## Best Practices
 
-### **Do's**
-✅ **Follow the hierarchy** strictly (Atoms → Molecules → Organisms → Templates → Pages)  
-✅ **Keep atoms simple** and focused on single responsibility  
-✅ **Use consistent prop interfaces** across atomic levels  
-✅ **Test components in isolation** before composition  
-✅ **Document component usage** with examples  
+### **Do's**:
+✅ **Use consistent naming conventions**
+✅ **Keep components focused and single-purpose**
+✅ **Implement proper error boundaries**
+✅ **Write comprehensive tests**
+✅ **Follow accessibility guidelines**
+✅ **Use TypeScript for type safety**
 
-### **Don'ts**
-❌ **Skip atomic levels** (don't build organisms before molecules)  
-❌ **Mix concerns** between atomic levels  
-❌ **Create overly complex atoms** that should be molecules  
-❌ **Duplicate functionality** across different atomic levels  
-❌ **Ignore theme integration** in any component  
+### **Don'ts**:
+❌ **Don't create overly complex components**
+❌ **Don't ignore accessibility requirements**
+❌ **Don't skip testing**
+❌ **Don't use inline styles**
+❌ **Don't create deeply nested component hierarchies**
 
-## Example Implementation
+## Component Library
 
-### **Building a Validation Form**
-```typescript
-// 1. Start with atoms
-<Input type="text" placeholder="Drug name" />
-<Button variant="primary">Validate</Button>
+### **Core Components**
+- **Button**: Primary, secondary, outline variants
+- **Input**: Text, number, select, textarea
+- **Card**: Content containers with headers
+- **Modal**: Overlay dialogs and forms
+- **Table**: Data display with sorting and pagination
 
-// 2. Create molecules
-<FormField label="Drug Name" required>
-  <Input type="text" placeholder="Drug name" />
-</FormField>
+### **Form Components**
+- **FormField**: Label, input, and error handling
+- **FormGroup**: Multiple related form fields
+- **ValidationMessage**: Error and success states
 
-// 3. Build organisms
-<ValidationForm onSubmit={handleSubmit}>
-  <FormField label="Drug Name" required>
-    <Input type="text" placeholder="Drug name" />
-  </FormField>
-  <Button variant="primary">Validate</Button>
-</ValidationForm>
+### **Layout Components**
+- **Container**: Responsive content wrapper
+- **Grid**: Flexible grid system
+- **Spacer**: Consistent spacing utilities
 
-// 4. Use in templates and pages
-<ValidationLayout>
-  <ValidationForm onSubmit={handleSubmit} />
-</ValidationLayout>
-```
+### **Feedback Components**
+- **Alert**: Success, warning, error messages
+- **LoadingSpinner**: Loading states
+- **ProgressBar**: Progress indicators
 
-This Atomic Design approach ensures our Pharmacy Invoice application has a **scalable, maintainable, and consistent** component library that grows with the project!
+## Implementation Checklist
+
+### **For Each Component**:
+- [ ] **Create component file** with proper structure
+- [ ] **Define TypeScript interface** for props
+- [ ] **Implement responsive design** with Tailwind
+- [ ] **Add accessibility features** (ARIA, keyboard)
+- [ ] **Write unit tests** with good coverage
+- [ ] **Add to component index** for easy importing
+- [ ] **Document usage examples** and props
+- [ ] **Test in different browsers** and devices
+
+### **For Each Level**:
+- [ ] **Atoms**: Basic, reusable UI elements
+- [ ] **Molecules**: Simple component combinations
+- [ ] **Organisms**: Complex UI sections
+- [ ] **Templates**: Page layout structures
+- [ ] **Pages**: Complete page implementations
+
+## Conclusion
+
+Following Atomic Design principles ensures:
+- **Consistency** across the application
+- **Reusability** of components
+- **Maintainability** of the codebase
+- **Scalability** for future features
+- **Quality** through systematic approach
+
+Remember: **Start simple, iterate, and maintain consistency** throughout the development process.
