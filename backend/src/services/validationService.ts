@@ -1,4 +1,4 @@
-import { DrugRow, DiscrepancyResult } from '../types/validation';
+import { DrugData, DiscrepancyResult } from '../types/validation';
 import { MockApiService, ReferenceDrug } from './mockApiService';
 import { config } from '../config/environment';
 import { createError } from '../middleware/errorHandler';
@@ -18,7 +18,7 @@ export class ValidationService {
    * Validate Excel data against reference drug data
    */
   static async validateExcelData(
-    drugRows: DrugRow[],
+    drugRows: DrugData[],
     filename: string
   ): Promise<ValidationResult> {
     const startTime = Date.now();
@@ -69,7 +69,7 @@ export class ValidationService {
    * Validate a single drug row against reference data
    */
   private static async validateDrugRow(
-    drugRow: DrugRow,
+    drugRow: DrugData,
     referenceDrugs: ReferenceDrug[],
     rowNumber: number
   ): Promise<DiscrepancyResult[]> {
@@ -83,12 +83,18 @@ export class ValidationService {
         // No reference drug found
         discrepancies.push({
           id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          validationId: '', // Will be set when saving to database
           drugName: drugRow.drugName,
-          discrepancyType: 'formulation',
-          recordedValue: `${drugRow.strength} ${drugRow.formulation}`,
-          expectedValue: undefined,
-          details: 'No matching reference drug found in database',
+          discrepancyType: 'reference_not_found',
+          actualValue: `${drugRow.strength} ${drugRow.formulation}`,
+          expectedValue: null,
+          message: 'No matching reference drug found in database',
           severity: 'high',
+          unitPrice: drugRow.unitPrice,
+          strength: drugRow.strength,
+          formulation: drugRow.formulation,
+          payer: drugRow.payer,
+          quantity: drugRow.quantity,
           createdAt: new Date().toISOString(),
         });
         return discrepancies;
@@ -118,122 +124,139 @@ export class ValidationService {
         discrepancies.push(payerDiscrepancy);
       }
       
+      return discrepancies;
+      
     } catch (error) {
-      console.error(`Error validating row ${rowNumber}:`, error);
+      console.error(`❌ Error validating row ${rowNumber}:`, error);
+      
+      // Add error discrepancy
       discrepancies.push({
         id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        validationId: '', // Will be set when saving to database
         drugName: drugRow.drugName,
-        discrepancyType: 'formulation',
-        recordedValue: 'Error during validation',
-        expectedValue: undefined,
-        details: `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        discrepancyType: 'reference_not_found',
+        actualValue: `${drugRow.strength} ${drugRow.formulation}`,
+        expectedValue: null,
+        message: `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         severity: 'high',
+        unitPrice: drugRow.unitPrice,
+        strength: drugRow.strength,
+        formulation: drugRow.formulation,
+        payer: drugRow.payer,
+        quantity: drugRow.quantity,
         createdAt: new Date().toISOString(),
       });
+      
+      return discrepancies;
     }
-    
-    return discrepancies;
   }
   
   /**
    * Find matching reference drug using fuzzy matching
    */
   private static findMatchingReferenceDrug(
-    drugRow: DrugRow,
+    drugRow: DrugData,
     referenceDrugs: ReferenceDrug[]
   ): ReferenceDrug | null {
-    // First try exact match on drug name and strength
-    let exactMatch = referenceDrugs.find(drug => 
-      drug.drugName.toLowerCase() === drugRow.drugName.toLowerCase() &&
-      drug.strength.toLowerCase() === drugRow.strength.toLowerCase()
-    );
+    let bestMatch: ReferenceDrug | null = null;
+    let bestScore = 0;
     
-    if (exactMatch) {
-      return exactMatch;
-    }
-    
-    // Try fuzzy matching on drug name (case-insensitive)
-    const fuzzyMatches = referenceDrugs.filter(drug => {
-      const drugNameSimilarity = this.calculateSimilarity(
-        drug.drugName.toLowerCase(),
-        drugRow.drugName.toLowerCase()
-      );
+    for (const refDrug of referenceDrugs) {
+      // Check if payer matches
+      if (refDrug.payer && refDrug.payer.toLowerCase() !== drugRow.payer.toLowerCase()) {
+        continue;
+      }
       
-      const strengthSimilarity = this.calculateSimilarity(
-        drug.strength.toLowerCase(),
-        drugRow.strength.toLowerCase()
-      );
+      // Calculate similarity score for drug name
+      const nameScore = this.calculateSimilarity(drugRow.drugName, refDrug.drugName);
       
-      // Consider it a match if both name and strength have >70% similarity
-      return drugNameSimilarity > 0.7 && strengthSimilarity > 0.7;
-    });
-    
-    if (fuzzyMatches.length > 0) {
-      // Return the best match
-      return fuzzyMatches.sort((a, b) => {
-        const aScore = this.calculateSimilarity(a.drugName.toLowerCase(), drugRow.drugName.toLowerCase());
-        const bScore = this.calculateSimilarity(b.drugName.toLowerCase(), drugRow.drugName.toLowerCase());
-        return bScore - aScore;
-      })[0];
-    }
-    
-    return null;
-  }
-  
-  /**
-   * Calculate string similarity using Levenshtein distance
-   */
-  private static calculateSimilarity(str1: string, str2: string): number {
-    const maxLength = Math.max(str1.length, str2.length);
-    if (maxLength === 0) return 1.0;
-    
-    const distance = this.levenshteinDistance(str1, str2);
-    return (maxLength - distance) / maxLength;
-  }
-  
-  /**
-   * Calculate Levenshtein distance between two strings
-   */
-  private static levenshteinDistance(str1: string, str2: string): number {
-    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
-    
-    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
-    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
-    
-    for (let j = 1; j <= str2.length; j++) {
-      for (let i = 1; i <= str1.length; i++) {
-        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-        matrix[j][i] = Math.min(
-          matrix[j][i - 1] + 1, // deletion
-          matrix[j - 1][i] + 1, // insertion
-          matrix[j - 1][i - 1] + indicator // substitution
-        );
+      // Calculate similarity score for strength
+      const strengthScore = this.calculateSimilarity(drugRow.strength, refDrug.strength || '');
+      
+      // Calculate similarity score for formulation
+      const formulationScore = this.calculateSimilarity(drugRow.formulation, refDrug.formulation || '');
+      
+      // Combined score (weighted)
+      const totalScore = (nameScore * 0.5) + (strengthScore * 0.3) + (formulationScore * 0.2);
+      
+      if (totalScore > bestScore && totalScore > 0.7) { // Minimum 70% similarity
+        bestScore = totalScore;
+        bestMatch = refDrug;
       }
     }
     
-    return matrix[str2.length][str1.length];
+    return bestMatch;
   }
   
   /**
-   * Validate unit price against reference price
+   * Calculate similarity between two strings using Levenshtein distance
+   */
+  private static calculateSimilarity(str1: string, str2: string): number {
+    if (str1 === str2) return 1;
+    if (str1.length === 0) return str2.length === 0 ? 1 : 0;
+    if (str2.length === 0) return 0;
+    
+    const matrix = [];
+    
+    // Initialize matrix
+    for (let i = 0; i <= str2.length; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= str1.length; j++) {
+      matrix[0][j] = j;
+    }
+    
+    // Fill matrix
+    for (let i = 1; i <= str2.length; i++) {
+      for (let j = 1; j <= str1.length; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substitution
+            matrix[i][j - 1] + 1,     // insertion
+            matrix[i - 1][j] + 1      // deletion
+          );
+        }
+      }
+    }
+    
+    // Calculate similarity as 1 - (distance / max length)
+    const distance = matrix[str2.length][str1.length];
+    const maxLength = Math.max(str1.length, str2.length);
+    return 1 - (distance / maxLength);
+  }
+  
+  /**
+   * Validate unit price
    */
   private static validateUnitPrice(
-    drugRow: DrugRow,
+    drugRow: DrugData,
     referenceDrug: ReferenceDrug,
     rowNumber: number
   ): DiscrepancyResult | null {
-    const threshold = config.unitPriceThreshold / 100; // Convert percentage to decimal
-    const priceDifference = (drugRow.unitPrice - referenceDrug.unitPrice) / referenceDrug.unitPrice;
+    if (!referenceDrug.unitPrice) {
+      return null;
+    }
     
-    if (priceDifference > threshold) {
+    const priceDifference = Math.abs(drugRow.unitPrice - referenceDrug.unitPrice);
+    const percentageDifference = (priceDifference / referenceDrug.unitPrice) * 100;
+    
+    if (percentageDifference > config.unitPriceThreshold) {
       return {
         id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        validationId: '', // Will be set when saving to database
         drugName: drugRow.drugName,
-        discrepancyType: 'unit_price',
-        recordedValue: `$${drugRow.unitPrice.toFixed(2)}`,
+        discrepancyType: 'unit_price_high',
+        actualValue: `$${drugRow.unitPrice.toFixed(2)}`,
         expectedValue: `$${referenceDrug.unitPrice.toFixed(2)}`,
-        details: `Unit price ${(priceDifference * 100).toFixed(1)}% above reference price (threshold: ${config.unitPriceThreshold}%)`,
-        severity: priceDifference > threshold * 2 ? 'high' : 'medium',
+        message: `Unit price is ${percentageDifference.toFixed(1)}% higher than reference price`,
+        severity: percentageDifference > 20 ? 'high' : 'medium',
+        unitPrice: drugRow.unitPrice,
+        strength: drugRow.strength,
+        formulation: drugRow.formulation,
+        payer: drugRow.payer,
+        quantity: drugRow.quantity,
         createdAt: new Date().toISOString(),
       };
     }
@@ -245,19 +268,29 @@ export class ValidationService {
    * Validate formulation
    */
   private static validateFormulation(
-    drugRow: DrugRow,
+    drugRow: DrugData,
     referenceDrug: ReferenceDrug,
     rowNumber: number
   ): DiscrepancyResult | null {
+    if (!referenceDrug.formulation) {
+      return null;
+    }
+    
     if (drugRow.formulation.toLowerCase() !== referenceDrug.formulation.toLowerCase()) {
       return {
         id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        validationId: '', // Will be set when saving to database
         drugName: drugRow.drugName,
-        discrepancyType: 'formulation',
-        recordedValue: drugRow.formulation,
+        discrepancyType: 'formulation_mismatch',
+        actualValue: drugRow.formulation,
         expectedValue: referenceDrug.formulation,
-        details: 'Formulation does not match reference data',
+        message: 'Formulation does not match reference data',
         severity: 'medium',
+        unitPrice: drugRow.unitPrice,
+        strength: drugRow.strength,
+        formulation: drugRow.formulation,
+        payer: drugRow.payer,
+        quantity: drugRow.quantity,
         createdAt: new Date().toISOString(),
       };
     }
@@ -269,19 +302,29 @@ export class ValidationService {
    * Validate strength
    */
   private static validateStrength(
-    drugRow: DrugRow,
+    drugRow: DrugData,
     referenceDrug: ReferenceDrug,
     rowNumber: number
   ): DiscrepancyResult | null {
+    if (!referenceDrug.strength) {
+      return null;
+    }
+    
     if (drugRow.strength.toLowerCase() !== referenceDrug.strength.toLowerCase()) {
       return {
         id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        validationId: '', // Will be set when saving to database
         drugName: drugRow.drugName,
-        discrepancyType: 'strength',
-        recordedValue: drugRow.strength,
+        discrepancyType: 'strength_mismatch',
+        actualValue: drugRow.strength,
         expectedValue: referenceDrug.strength,
-        details: 'Strength does not match reference data',
+        message: 'Strength does not match reference data',
         severity: 'medium',
+        unitPrice: drugRow.unitPrice,
+        strength: drugRow.strength,
+        formulation: drugRow.formulation,
+        payer: drugRow.payer,
+        quantity: drugRow.quantity,
         createdAt: new Date().toISOString(),
       };
     }
@@ -293,19 +336,29 @@ export class ValidationService {
    * Validate payer
    */
   private static validatePayer(
-    drugRow: DrugRow,
+    drugRow: DrugData,
     referenceDrug: ReferenceDrug,
     rowNumber: number
   ): DiscrepancyResult | null {
-    if (drugRow.payer !== referenceDrug.payer) {
+    if (!referenceDrug.payer) {
+      return null;
+    }
+    
+    if (drugRow.payer.toLowerCase() !== referenceDrug.payer.toLowerCase()) {
       return {
         id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        validationId: '', // Will be set when saving to database
         drugName: drugRow.drugName,
-        discrepancyType: 'payer',
-        recordedValue: drugRow.payer,
+        discrepancyType: 'payer_mismatch',
+        actualValue: drugRow.payer,
         expectedValue: referenceDrug.payer,
-        details: 'Payer does not match reference data',
+        message: 'Payer does not match reference data',
         severity: 'low',
+        unitPrice: drugRow.unitPrice,
+        strength: drugRow.strength,
+        formulation: drugRow.formulation,
+        payer: drugRow.payer,
+        quantity: drugRow.quantity,
         createdAt: new Date().toISOString(),
       };
     }

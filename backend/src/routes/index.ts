@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import validationRoutes from './validation';
 import historyRoutes from './history';
-import settingsRoutes from './settings';
 import exportRoutes from './export';
 
 const router = Router();
@@ -11,13 +10,16 @@ const API_VERSION = '/v1';
 
 // Health check
 router.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // API routes
 router.use(`${API_VERSION}/validation`, validationRoutes);
 router.use(`${API_VERSION}/history`, historyRoutes);
-router.use(`${API_VERSION}/settings`, settingsRoutes);
 router.use(`${API_VERSION}/export`, exportRoutes);
 
 // 404 handler for undefined routes

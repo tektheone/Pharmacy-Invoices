@@ -15,7 +15,10 @@
     "setup:db": "npm run db:up && sleep 10 && npm --workspace backend exec prisma migrate dev --name init && npm --workspace backend run db:seed",
     "dev:backend": "npm --workspace backend run dev",
     "build:backend": "npm --workspace backend run build",
-    "test:backend": "npm --workspace backend run test"
+    "test:backend": "npm --workspace backend run test",
+    "dev:frontend": "npm --workspace frontend run dev",
+    "build:frontend": "npm --workspace frontend run build",
+    "preview:frontend": "npm --workspace frontend run preview"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -3,27 +3,57 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  // Ensure a default settings row exists
-  const existing = await prisma.setting.findFirst();
-  if (!existing) {
-    await prisma.setting.create({
-      data: {
-        theme: 'system',
-        unitPriceThreshold: 10,
-        cacheDurationHours: 24,
-        fileSizeLimitBytes: 104857600,
-        defaultExportFormat: 'pdf',
-      },
+  console.log('🌱 Starting database seed...');
+
+  // Clean up existing data
+  await prisma.validationResult.deleteMany();
+  await prisma.validation.deleteMany();
+  await prisma.referenceDrugCache.deleteMany();
+
+  console.log('🧹 Cleaned up existing data');
+
+  // Seed some sample reference drug data
+  const sampleDrugs = [
+    {
+      drugName: 'Aspirin',
+      strength: '100mg',
+      formulation: 'tablet',
+      unitPrice: 0.15,
+      payer: 'medicaid',
+      sourceApi: 'mockapi',
+    },
+    {
+      drugName: 'Ibuprofen',
+      strength: '200mg',
+      formulation: 'tablet',
+      unitPrice: 0.25,
+      payer: 'medicare',
+      sourceApi: 'mockapi',
+    },
+    {
+      drugName: 'Acetaminophen',
+      strength: '500mg',
+      formulation: 'tablet',
+      unitPrice: 0.20,
+      payer: 'medicaid',
+      sourceApi: 'mockapi',
+    },
+  ];
+
+  for (const drug of sampleDrugs) {
+    await prisma.referenceDrugCache.create({
+      data: drug,
     });
-    console.log('Seeded default settings');
-  } else {
-    console.log('Settings already exist, skipping seed');
   }
+
+  console.log('💊 Seeded sample reference drug data');
+
+  console.log('✅ Database seeding completed!');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seeding failed:', e);
     process.exit(1);
   })
   .finally(async () => {

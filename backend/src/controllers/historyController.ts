@@ -6,17 +6,23 @@ export const historyController = {
   /**
    * Get validation history with pagination
    */
-  async getValidationHistory(req: Request, res: Response, next: NextFunction) {
+  async getHistory(req: Request, res: Response, next: NextFunction) {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
-      
-      const history = await DatabaseService.getValidationHistory(page, limit);
-      
-      res.status(200).json(history);
 
+      const result = await DatabaseService.getValidationHistory(page, limit);
+
+      res.json({
+        success: true,
+        message: 'History retrieved successfully',
+        data: result,
+      });
     } catch (error) {
-      next(error);
+      next(createError(
+        `Failed to get history: ${error instanceof Error ? error.message : 'Database error'}`,
+        500
+      ));
     }
   },
 
@@ -26,21 +32,23 @@ export const historyController = {
   async getValidationById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      
-      const validation = await DatabaseService.getValidationById(id);
-      
-      res.status(200).json({
-        id: validation.id,
-        filename: validation.filename,
-        status: validation.status,
-        totalDiscrepancies: validation.totalDiscrepancies,
-        processingTime: validation.processingTimeMs,
-        createdAt: validation.createdAt,
-        results: validation.results,
-      });
 
+      const validation = await DatabaseService.getValidation(id);
+
+      if (!validation) {
+        return next(createError('Validation not found', 404));
+      }
+
+      res.json({
+        success: true,
+        message: 'Validation retrieved successfully',
+        data: validation,
+      });
     } catch (error) {
-      next(error);
+      next(createError(
+        `Failed to get validation: ${error instanceof Error ? error.message : 'Database error'}`,
+        500
+      ));
     }
   },
 
@@ -49,40 +57,75 @@ export const historyController = {
    */
   async searchValidations(req: Request, res: Response, next: NextFunction) {
     try {
-      const { query, startDate, endDate, discrepancyType, page, limit } = req.query;
-      
-      const searchResults = await DatabaseService.searchValidations(
-        query as string,
-        startDate as string,
-        endDate as string,
-        discrepancyType as string,
-        parseInt(page as string) || 1,
-        parseInt(limit as string) || 20
-      );
-      
-      res.status(200).json(searchResults);
+      const { query, page, limit } = req.query;
 
+      if (!query || typeof query !== 'string') {
+        return next(createError('Search query is required', 400));
+      }
+
+      const pageNum = parseInt(page as string) || 1;
+      const limitNum = parseInt(limit as string) || 20;
+
+      const result = await DatabaseService.searchValidations(query, pageNum, limitNum);
+
+      res.json({
+        success: true,
+        message: 'Search completed successfully',
+        data: result,
+      });
     } catch (error) {
-      next(error);
+      next(createError(
+        `Failed to search validations: ${error instanceof Error ? error.message : 'Database error'}`,
+        500
+      ));
     }
   },
 
   /**
-   * Delete validation
+   * Get discrepancy results for a validation
+   */
+  async getValidationDiscrepancies(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+
+      const discrepancies = await DatabaseService.getDiscrepancyResults(id);
+
+      res.json({
+        success: true,
+        message: 'Discrepancy results retrieved successfully',
+        data: discrepancies,
+      });
+    } catch (error) {
+      next(createError(
+        `Failed to get discrepancy results: ${error instanceof Error ? error.message : 'Database error'}`,
+        500
+      ));
+    }
+  },
+
+  /**
+   * Delete validation by ID
    */
   async deleteValidation(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      
-      await DatabaseService.deleteValidation(id);
-      
-      res.status(200).json({
-        id,
-        message: 'Validation deleted successfully',
-      });
 
+      const success = await DatabaseService.deleteValidation(id);
+
+      if (!success) {
+        return next(createError('Validation not found', 404));
+      }
+
+      res.json({
+        success: true,
+        message: 'Validation deleted successfully',
+        data: { id },
+      });
     } catch (error) {
-      next(error);
+      next(createError(
+        `Failed to delete validation: ${error instanceof Error ? error.message : 'Database error'}`,
+        500
+      ));
     }
   },
 };

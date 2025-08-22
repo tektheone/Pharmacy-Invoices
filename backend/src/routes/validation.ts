@@ -35,7 +35,7 @@ const upload = multer({
 router.post('/upload', 
   upload.single('file'),
   validateFileUpload,
-  validationController.uploadAndValidate
+  validationController.uploadFile
 );
 
 // Get validation status
@@ -43,8 +43,5 @@ router.get('/status/:id', validationController.getValidationStatus);
 
 // Get validation results
 router.get('/results/:id', validationController.getValidationResults);
-
-// Cancel validation
-router.delete('/cancel/:id', validationController.cancelValidation);
 
 export default router;
