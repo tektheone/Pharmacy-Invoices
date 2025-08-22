@@ -31,13 +31,18 @@ export const validateFileUpload = (req: Request, res: Response, next: NextFuncti
     return next(createError('No file uploaded', 400));
   }
   
-  // Check file type
+  // Check file type - be more flexible
   const allowedTypes = [
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
     'application/vnd.ms-excel', // .xls
+    'application/octet-stream', // Some systems send this for Excel files
   ];
   
-  if (!allowedTypes.includes(req.file.mimetype)) {
+  const isExcelByMimeType = allowedTypes.includes(req.file.mimetype);
+  const isExcelByExtension = req.file.originalname.toLowerCase().endsWith('.xlsx') || 
+                            req.file.originalname.toLowerCase().endsWith('.xls');
+  
+  if (!isExcelByMimeType && !isExcelByExtension) {
     return next(createError('Invalid file type. Only Excel files (.xlsx, .xls) are allowed', 400));
   }
   

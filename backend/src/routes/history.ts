@@ -6,11 +6,11 @@ const router = Router();
 // Get validation history with pagination
 router.get('/', historyController.getValidationHistory);
 
+// Search validations (must come before /:id route)
+router.get('/search', historyController.searchValidations);
+
 // Get validation by ID
 router.get('/:id', historyController.getValidationById);
-
-// Search validations
-router.get('/search', historyController.searchValidations);
 
 // Delete validation
 router.delete('/:id', historyController.deleteValidation);

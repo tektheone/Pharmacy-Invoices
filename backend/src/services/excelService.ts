@@ -28,17 +28,18 @@ export class ExcelService {
       );
       
       // Map raw data to DrugRow objects
-      const drugRows: DrugRow[] = dataRows.map((row: any[], index: number) => {
+      const drugRows: DrugRow[] = dataRows.map((row: unknown, index: number) => {
+        const rowArray = row as any[];
         try {
           return {
-            drugName: this.sanitizeString(row[0]),
-            strength: this.sanitizeString(row[1]),
-            formulation: this.sanitizeString(row[2]),
-            doseInstructions: this.sanitizeString(row[3]) || '',
-            payer: this.normalizePayer(row[4]),
-            quantity: this.parseNumber(row[5]),
-            unitPrice: this.parseNumber(row[6]),
-            total: this.parseNumber(row[7]),
+            drugName: this.sanitizeString(rowArray[0]),
+            strength: this.sanitizeString(rowArray[1]),
+            formulation: this.sanitizeString(rowArray[2]),
+            doseInstructions: this.sanitizeString(rowArray[3]) || '',
+            payer: this.normalizePayer(rowArray[4]),
+            quantity: this.parseNumber(rowArray[5]),
+            unitPrice: this.parseNumber(rowArray[6]),
+            total: this.parseNumber(rowArray[7]),
           };
         } catch (error) {
           throw createError(

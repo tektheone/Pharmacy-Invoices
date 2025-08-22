@@ -100,8 +100,9 @@ export class MockApiService {
       throw new Error('Drug must be an object');
     }
     
-    if (!drug.id || typeof drug.id !== 'string') {
-      throw new Error('Drug ID is required and must be a string');
+    // Handle both string and number IDs
+    if (!drug.id) {
+      throw new Error('Drug ID is required');
     }
     
     if (!drug.drugName || typeof drug.drugName !== 'string') {
@@ -116,7 +117,9 @@ export class MockApiService {
       throw new Error('Drug formulation is required and must be a string');
     }
     
-    if (typeof drug.unitPrice !== 'number' || drug.unitPrice <= 0) {
+    // Handle both unitPrice and standardUnitPrice fields
+    const unitPrice = drug.unitPrice || drug.standardUnitPrice;
+    if (typeof unitPrice !== 'number' || unitPrice <= 0) {
       throw new Error('Drug unit price is required and must be a positive number');
     }
     
@@ -125,11 +128,11 @@ export class MockApiService {
     }
     
     return {
-      id: drug.id,
+      id: String(drug.id), // Convert to string if it's a number
       drugName: drug.drugName,
       strength: drug.strength,
       formulation: drug.formulation,
-      unitPrice: drug.unitPrice,
+      unitPrice: unitPrice,
       payer: drug.payer,
       createdAt: drug.createdAt || new Date().toISOString(),
       updatedAt: drug.updatedAt || new Date().toISOString(),
