@@ -162,7 +162,7 @@ export class ValidationService {
     let bestScore = 0;
     
     for (const refDrug of referenceDrugs) {
-      // Check if payer matches
+      // Check if payer matches (case-insensitive)
       if (refDrug.payer && refDrug.payer.toLowerCase() !== drugRow.payer.toLowerCase()) {
         continue;
       }
@@ -176,10 +176,11 @@ export class ValidationService {
       // Calculate similarity score for formulation
       const formulationScore = this.calculateSimilarity(drugRow.formulation, refDrug.formulation || '');
       
-      // Combined score (weighted)
-      const totalScore = (nameScore * 0.5) + (strengthScore * 0.3) + (formulationScore * 0.2);
+      // Combined score (weighted) - More lenient matching
+      const totalScore = (nameScore * 0.4) + (strengthScore * 0.4) + (formulationScore * 0.2);
       
-      if (totalScore > bestScore && totalScore > 0.7) { // Minimum 70% similarity
+      // Lower threshold to catch more potential matches (60% instead of 70%)
+      if (totalScore > bestScore && totalScore > 0.6) {
         bestScore = totalScore;
         bestMatch = refDrug;
       }
@@ -239,9 +240,11 @@ export class ValidationService {
       return null;
     }
     
-    const priceDifference = Math.abs(drugRow.unitPrice - referenceDrug.unitPrice);
+    // Calculate if invoice price is >10% HIGHER than reference price
+    const priceDifference = drugRow.unitPrice - referenceDrug.unitPrice;
     const percentageDifference = (priceDifference / referenceDrug.unitPrice) * 100;
     
+    // Only flag if price is HIGHER than threshold (not lower)
     if (percentageDifference > config.unitPriceThreshold) {
       return {
         id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,

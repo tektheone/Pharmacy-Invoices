@@ -1,0 +1,20 @@
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+DRUG VALIDATION DATA
+===================
+
+Row 1: Amoxicillin 500 mg Capsule
+Price: $0.6, Payer: medicaid, Qty: 30
+
+Row 2: Lisinopril 10 mg Capsule
+Price: $0.3, Payer: medicaid, Qty: 30
+
+Row 3: Metformin 1000 mg Tablet (ER)
+Price: $0.15, Payer: medicare, Qty: 60
+

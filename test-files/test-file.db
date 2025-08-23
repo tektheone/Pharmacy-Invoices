@@ -1,0 +1,7 @@
+SQLite format 3
+DRUG_VALIDATION_TABLE
+CREATE TABLE drugs (id INTEGER, name TEXT, strength TEXT, formulation TEXT, price REAL, payer TEXT, quantity INTEGER);
+
+INSERT INTO drugs VALUES (1, 'Amoxicillin', '500 mg', 'Capsule', 0.6, 'medicaid', 30);
+INSERT INTO drugs VALUES (2, 'Lisinopril', '10 mg', 'Capsule', 0.3, 'medicaid', 30);
+INSERT INTO drugs VALUES (3, 'Metformin', '1000 mg', 'Tablet (ER)', 0.15, 'medicare', 60);

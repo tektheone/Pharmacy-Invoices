@@ -148,7 +148,7 @@ export function ValidationPage() {
 
           setValidationStep('complete')
           setUploadStatus('success')
-          setStatusMessage(`File uploaded successfully! Validation ID: ${validationId || 'N/A'}`)
+          setStatusMessage('')
 
           // Increment validation count to signal new data to HistoryPage
           incrementValidationCount()
@@ -216,7 +216,7 @@ export function ValidationPage() {
       case 'processing':
         return 'Processing validation...'
       case 'complete':
-        return 'Validation complete!'
+        return 'Ready to upload'
       default:
         return 'Ready to upload'
     }

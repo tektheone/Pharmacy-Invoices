@@ -1,0 +1,26 @@
+[
+  {
+    "Drug Name": "Amoxicillin",
+    "Strength": "500 mg",
+    "Formulation": "Capsule",
+    "Unit Price": 0.6,
+    "Payer": "medicaid",
+    "Quantity": 30
+  },
+  {
+    "Drug Name": "Lisinopril",
+    "Strength": "10 mg",
+    "Formulation": "Capsule",
+    "Unit Price": 0.3,
+    "Payer": "medicaid",
+    "Quantity": 30
+  },
+  {
+    "Drug Name": "Metformin",
+    "Strength": "1000 mg",
+    "Formulation": "Tablet (ER)",
+    "Unit Price": 0.15,
+    "Payer": "medicare",
+    "Quantity": 60
+  }
+]
