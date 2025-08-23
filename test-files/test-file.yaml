@@ -1,0 +1,22 @@
+drugs:
+  - id: 1
+    name: Amoxicillin
+    strength: 500 mg
+    formulation: Capsule
+    unit_price: 0.6
+    payer: medicaid
+    quantity: 30
+  - id: 2
+    name: Lisinopril
+    strength: 10 mg
+    formulation: Capsule
+    unit_price: 0.3
+    payer: medicaid
+    quantity: 30
+  - id: 3
+    name: Metformin
+    strength: 1000 mg
+    formulation: Tablet (ER)
+    unit_price: 0.15
+    payer: medicare
+    quantity: 60

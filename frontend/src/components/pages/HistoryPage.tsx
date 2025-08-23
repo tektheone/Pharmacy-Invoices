@@ -67,6 +67,17 @@ export function HistoryPage() {
     }
   }, [validationCount, lastValidationCount])
 
+  // Ensure total pages are always in sync with current data and page size
+  useEffect(() => {
+    const newTotalPages = Math.ceil(allValidations.length / pageSize)
+    setTotalPages(newTotalPages)
+
+    // If current page is beyond total pages, go to last page
+    if (currentPage > newTotalPages && newTotalPages > 0) {
+      setCurrentPage(newTotalPages)
+    }
+  }, [allValidations.length, pageSize, currentPage])
+
   // Load all validations once and store locally
   const fetchAllValidations = async () => {
     try {
@@ -137,8 +148,19 @@ export function HistoryPage() {
 
       if (response.ok) {
         // Remove from local state
-        setAllValidations(prev => prev.filter(v => v.id !== validation.id))
-        setValidations(prev => prev.filter(v => v.id !== validation.id))
+        const updatedAllValidations = allValidations.filter(v => v.id !== validation.id)
+        const updatedValidations = validations.filter(v => v.id !== validation.id)
+
+        setAllValidations(updatedAllValidations)
+        setValidations(updatedValidations)
+
+        // Recalculate total pages after deletion
+        setTotalPages(Math.ceil(updatedAllValidations.length / pageSize))
+
+        // If current page is now beyond total pages, go to last page
+        if (currentPage > Math.ceil(updatedAllValidations.length / pageSize)) {
+          setCurrentPage(Math.max(1, Math.ceil(updatedAllValidations.length / pageSize)))
+        }
 
         // Close delete confirmation
         setShowDeleteConfirm(null)
@@ -257,7 +279,7 @@ export function HistoryPage() {
                     const newSize = parseInt(e.target.value)
                     setPageSize(newSize)
                     setCurrentPage(1) // Reset to first page when changing page size
-                    setTotalPages(Math.ceil(validations.length / newSize))
+                    // Total pages will be automatically updated by the useEffect
                   }}
                   className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300"
                 >
@@ -296,7 +318,7 @@ export function HistoryPage() {
                     setSearchQuery('')
                     setValidations(allValidations)
                     setCurrentPage(1)
-                    setTotalPages(Math.ceil(allValidations.length / pageSize))
+                    // Total pages will be automatically updated by the useEffect
                   }}
                   className="text-muted-foreground hover:text-gray-700"
                 >
@@ -684,7 +706,7 @@ export function HistoryPage() {
     if (!query.trim()) {
       setValidations(allValidations)
       setCurrentPage(1)
-      setTotalPages(Math.ceil(allValidations.length / pageSize))
+      // Total pages will be automatically updated by the useEffect
       return
     }
 
@@ -699,7 +721,7 @@ export function HistoryPage() {
 
     setValidations(filtered)
     setCurrentPage(1)
-    setTotalPages(Math.ceil(filtered.length / pageSize))
+    // Total pages will be automatically updated by the useEffect
   }
 
   // Helper function to get paginated validations

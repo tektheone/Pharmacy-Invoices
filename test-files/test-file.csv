@@ -1,0 +1,4 @@
+Drug Name,Strength,Formulation,Unit Price,Payer,Quantity
+"Amoxicillin","500 mg","Capsule","0.6","medicaid","30"
+"Lisinopril","10 mg","Capsule","0.3","medicaid","30"
+"Metformin","1000 mg","Tablet (ER)","0.15","medicare","60"

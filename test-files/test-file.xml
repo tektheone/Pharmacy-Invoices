@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<drugs>
+  <drug id="1">
+    <name>Amoxicillin</name>
+    <strength>500 mg</strength>
+    <formulation>Capsule</formulation>
+    <unitPrice>0.6</unitPrice>
+    <payer>medicaid</payer>
+    <quantity>30</quantity>
+  </drug>
+  <drug id="2">
+    <name>Lisinopril</name>
+    <strength>10 mg</strength>
+    <formulation>Capsule</formulation>
+    <unitPrice>0.3</unitPrice>
+    <payer>medicaid</payer>
+    <quantity>30</quantity>
+  </drug>
+  <drug id="3">
+    <name>Metformin</name>
+    <strength>1000 mg</strength>
+    <formulation>Tablet (ER)</formulation>
+    <unitPrice>0.15</unitPrice>
+    <payer>medicare</payer>
+    <quantity>60</quantity>
+  </drug>
+</drugs>
